@@ -1,4 +1,4 @@
-package com.gdg.manaus.sendtowhatsapp.Util;
+package com.gdg.manaus.sendtowhatsapp.business;
 
 import android.content.Context;
 import android.net.Uri;
@@ -8,6 +8,9 @@ import com.gdg.manaus.sendtowhatsapp.business.ReadContactSource;
 import com.gdg.manaus.sendtowhatsapp.model.Contact;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -31,16 +34,11 @@ public class ReadCSV implements ReadContactSource {
     }
 
     @Override
-    public List<Contact> getContacts() {
+    public List<Contact> getContacts() throws IOException {
         List<Contact> contacts = null;
-        try {
-            contacts = readFileFromUri();
-            // The CSV File has a Header line, remove this.
-            contacts.remove(0);
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
-
+        contacts = readFileFromUri();
+        // The CSV File has a Header line, remove this.
+        contacts.remove(0);
         return contacts;
     }
 

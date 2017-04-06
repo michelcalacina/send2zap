@@ -2,6 +2,7 @@ package com.gdg.manaus.sendtowhatsapp.business;
 
 import com.gdg.manaus.sendtowhatsapp.model.Contact;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -9,5 +10,5 @@ import java.util.List;
  */
 
 public interface ReadContactSource {
-    public List<Contact> getContacts();
+    public List<Contact> getContacts() throws IOException;
 }

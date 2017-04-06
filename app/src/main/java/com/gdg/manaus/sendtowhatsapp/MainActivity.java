@@ -35,6 +35,8 @@ import com.gdg.manaus.sendtowhatsapp.business.ContactHandler;
 import com.gdg.manaus.sendtowhatsapp.model.Contact;
 import com.gdg.manaus.sendtowhatsapp.service.GDGService;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -138,8 +140,8 @@ public class MainActivity extends AppCompatActivity
     private void fileChooser() {
         Intent i = new Intent(Intent.ACTION_GET_CONTENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);
-        i.setType("*/*");
-        startActivityForResult(Intent.createChooser(i, "File"), READ_REQUEST_CODE);
+        i.setType("text/csv");
+        startActivityForResult(Intent.createChooser(i, "Abrir CSV"), READ_REQUEST_CODE);
     }
 
     @Override
@@ -152,8 +154,16 @@ public class MainActivity extends AppCompatActivity
                         , getString(R.string.dialog_title_loading_file)
                         , getString(R.string.dialog_body_loading_file)
                         , true);
+
                 uri = data.getData();
-                Thread t = new Thread(new ContactHandler(this, uri, this));
+                Thread t = null;
+
+                try {
+                    t = new Thread(new ContactHandler(getApplicationContext(), uri, this));
+                } catch (IOException e) {
+                    Log.e(TAG, e.getMessage());
+                }
+
                 t.start();
             }
         }
@@ -170,6 +180,14 @@ public class MainActivity extends AppCompatActivity
             }
         });
         progressDialog.dismiss();
+    }
+
+    @Override
+    public void onExtractContactError() {
+        progressDialog.dismiss();
+        Snackbar.make(mainLayout
+                , getString(R.string.snack_file_not_found_exception)
+                , Snackbar.LENGTH_SHORT).show();
     }
 
     @Override

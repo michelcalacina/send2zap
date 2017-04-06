@@ -4,9 +4,10 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import com.gdg.manaus.sendtowhatsapp.Util.ReadCSV;
 import com.gdg.manaus.sendtowhatsapp.model.Contact;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -20,7 +21,8 @@ public class ContactHandler implements Runnable {
      * for it that need to manage ContactHandler class.
      */
     public interface ContactHandlerCallBack {
-        public void onContactsLoad(List<Contact> contacts);
+        void onContactsLoad(List<Contact> contacts);
+        void onExtractContactError();
     }
 
     private final String TAG = this.getClass().getSimpleName();
@@ -37,7 +39,7 @@ public class ContactHandler implements Runnable {
     private ContactHandlerCallBack callBack;
 
     public ContactHandler(Context context, Uri uri, ContactHandlerCallBack callBack)
-            throws NullPointerException {
+            throws IOException {
         if (uri == null) {
             throw new NullPointerException();
         }
@@ -49,13 +51,12 @@ public class ContactHandler implements Runnable {
 
     @Override
     public void run() {
-        List<Contact> contacts = null;
         try {
-            contacts = reader.getContacts();
-        } catch (Exception e) {
+            callBack.onContactsLoad(reader.getContacts());
+        } catch (IOException e) {
             Log.e(TAG, e.getMessage());
+            callBack.onExtractContactError();
         }
-        callBack.onContactsLoad(contacts);
     }
 
 }
