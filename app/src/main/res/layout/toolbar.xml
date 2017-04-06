@@ -1,0 +1,39 @@
+<android.support.v7.widget.Toolbar
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="20dp"
+            android:layout_toLeftOf="@+id/label_for_action_open_file"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:textColor="#ffffff"/>
+
+        <TextView
+            android:id="@+id/label_for_action_open_file"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_for_open_file_button"
+            android:layout_toLeftOf="@+id/action_open_file"
+            android:layout_centerInParent="true"
+            android:textColor="#ffffff"/>
+
+        <Button
+            android:id="@+id/action_open_file"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/open_file"
+            android:layout_centerVertical="true"/>
+    </RelativeLayout>
+
+</android.support.v7.widget.Toolbar>

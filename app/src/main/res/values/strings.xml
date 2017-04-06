@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Send2Zap</string>
+    <string name="action_settings">Settings</string>
+    <string name="accessibility_service_label">GDG Acessibilidade</string>
+    <string name="accessibility_service_description">Serviço responsável por automatizar o envio de mensagens</string>
+    <string name="dialog_title_loading_file">Processando</string>
+    <string name="dialog_body_loading_file">Extraíndo contatos</string>
+    <string name="contact_empty_list">Nenhum contato carregado</string>
+    <string name="warning_enable_accessibility">O serviço de acessibilidade do GDG precisa ser ativado</string>
+    <string name="snack_enable_service">Configurar</string>
+    <string name="hint_edit_message">Digite a mensagem aqui...</string>
+    <string name="label_for_open_file_button">Arquivo de contatos</string>
+</resources>

@@ -1,0 +1,215 @@
+package com.gdg.manaus.sendtowhatsapp;
+
+import android.accessibilityservice.AccessibilityServiceInfo;
+import android.app.ProgressDialog;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.provider.Settings;
+import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.telephony.PhoneNumberUtils;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
+
+import com.gdg.manaus.sendtowhatsapp.adapter.ContactAdapter;
+import com.gdg.manaus.sendtowhatsapp.business.ContactHandler;
+import com.gdg.manaus.sendtowhatsapp.model.Contact;
+import com.gdg.manaus.sendtowhatsapp.service.GDGService;
+
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class MainActivity extends AppCompatActivity
+        implements ContactHandler.ContactHandlerCallBack
+        , View.OnClickListener
+        , TextWatcher {
+
+    private final String TAG = "GDGMainActivity";
+    private final int READ_REQUEST_CODE = 42;
+    private final int COLOR_GRAY = 0xff888888;
+    private final int COLOR_HOLO_GREEN_DARK = 0xff669900;
+
+    private ProgressDialog progressDialog;
+    private RecyclerView mContactsRecyclerView;
+    private ContactAdapter mContactAdapter;
+    private EditText mMessageField;
+    private RelativeLayout mainLayout;
+    private Button openFile;
+    FloatingActionButton mFab;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mainLayout = (RelativeLayout) findViewById(R.id.main_constraint_layout);
+
+        openFile = (Button) findViewById(R.id.action_open_file);
+        openFile.setOnClickListener(this);
+
+        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        mFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendMessage();
+            }
+        });
+        // Default is to be enable, only when all requirement have been settled!
+        mFab.setEnabled(false);
+
+        mMessageField = (EditText) findViewById(R.id.message_field);
+        mMessageField.addTextChangedListener(this);
+
+        mContactAdapter = new ContactAdapter(this);
+        mContactsRecyclerView = (RecyclerView) findViewById(R.id.contact_list);
+        mContactsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mContactsRecyclerView.setAdapter(mContactAdapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!GDGService.isEnabled) {
+            Snackbar snackbar = Snackbar.make(mainLayout
+                    , getString(R.string.warning_enable_accessibility)
+                    , Snackbar.LENGTH_INDEFINITE)
+                    .setAction(getString(R.string.snack_enable_service), new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View v) {
+                            Intent i = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                            startActivity(i);
+                        }
+                    });
+            snackbar.show();
+        } else {
+            controlFab(true);
+        }
+    }
+
+    private void sendMessage() {
+        if (mContactAdapter.getContacts() == null || mContactAdapter.getContacts().size() == 0) {
+            Snackbar.make(mainLayout
+                    , getString(R.string.contact_empty_list)
+                    , Snackbar.LENGTH_LONG).show();
+            return;
+        }
+
+        String messageToSend = mMessageField.getText().toString();
+        if (messageToSend.trim().isEmpty()) {
+            return;
+        }
+
+        GDGService.setTextToSend(messageToSend);
+
+        GDGService.contacts = mContactAdapter.getContacts();
+
+        for (Contact c : mContactAdapter.getContacts()) {
+            Intent sendIntent = new Intent("android.intent.action.MAIN");
+            sendIntent.setAction(Intent.ACTION_SENDTO);
+            sendIntent.setComponent(new  ComponentName("com.whatsapp","com.whatsapp.Conversation"));
+            sendIntent.putExtra("jid", PhoneNumberUtils.stripSeparators(c.getNumber())+"@s.whatsapp.net");
+
+            startActivity(sendIntent);
+        }
+    }
+
+    private void fileChooser() {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("*/*");
+        startActivityForResult(Intent.createChooser(i, "File"), READ_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == READ_REQUEST_CODE && resultCode==RESULT_OK) {
+            Uri uri = null;
+            if (data != null) {
+                progressDialog = ProgressDialog.show(
+                        this
+                        , getString(R.string.dialog_title_loading_file)
+                        , getString(R.string.dialog_body_loading_file)
+                        , true);
+                uri = data.getData();
+                Thread t = new Thread(new ContactHandler(this, uri, this));
+                t.start();
+            }
+        }
+    }
+
+    @Override
+    public void onContactsLoad(final List<Contact> contacts) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mContactAdapter.setContacts(contacts);
+                mContactAdapter.notifyDataSetChanged();
+                controlFab(true);
+            }
+        });
+        progressDialog.dismiss();
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == openFile.getId()) {
+            fileChooser();
+        }
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        if (s.toString().isEmpty() && mFab.isEnabled()) {
+            controlFab(false);
+        } else if (!mFab.isEnabled()) {
+            controlFab(true);
+        }
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+
+    }
+
+    private void controlFab(boolean enable) {
+        if (!enable) {
+            mFab.setEnabled(false);
+            mFab.setBackgroundTintList(ColorStateList.valueOf(COLOR_GRAY));
+        } else if ( !mFab.isEnabled()
+                && GDGService.isEnabled
+                && mMessageField.getText().length() > 0
+                && mContactAdapter.getContacts() != null
+                && mContactAdapter.getContacts().size() > 0) {
+
+            mFab.setEnabled(true);
+            mFab.setBackgroundTintList(ColorStateList.valueOf(COLOR_HOLO_GREEN_DARK));
+        }
+    }
+}
