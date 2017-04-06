@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity
     private Button openFile;
     FloatingActionButton mFab;
 
+    private boolean isAccessibilityServiceEnabled = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,8 +91,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-
-        if (!GDGService.isEnabled) {
+        isAccessibilityServiceEnabled = isAccessibilityEnabled();
+        if (!isAccessibilityServiceEnabled) {
             Snackbar snackbar = Snackbar.make(mainLayout
                     , getString(R.string.warning_enable_accessibility)
                     , Snackbar.LENGTH_INDEFINITE)
@@ -122,8 +124,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         GDGService.setTextToSend(messageToSend);
-
-        GDGService.contacts = mContactAdapter.getContacts();
 
         for (Contact c : mContactAdapter.getContacts()) {
             Intent sendIntent = new Intent("android.intent.action.MAIN");
@@ -203,7 +203,7 @@ public class MainActivity extends AppCompatActivity
             mFab.setEnabled(false);
             mFab.setBackgroundTintList(ColorStateList.valueOf(COLOR_GRAY));
         } else if ( !mFab.isEnabled()
-                && GDGService.isEnabled
+                && isAccessibilityServiceEnabled
                 && mMessageField.getText().length() > 0
                 && mContactAdapter.getContacts() != null
                 && mContactAdapter.getContacts().size() > 0) {
@@ -211,5 +211,32 @@ public class MainActivity extends AppCompatActivity
             mFab.setEnabled(true);
             mFab.setBackgroundTintList(ColorStateList.valueOf(COLOR_HOLO_GREEN_DARK));
         }
+    }
+
+    private boolean isAccessibilityEnabled() {
+        int enabled = 0;
+        final String service = getPackageName() +"/"+GDGService.class.getCanonicalName();
+
+        try {
+            enabled = Settings.Secure.getInt(getApplicationContext().getContentResolver(), Settings.Secure.ACCESSIBILITY_ENABLED);
+        } catch (Settings.SettingNotFoundException e) {
+            Log.e(TAG, e.getMessage());
+        }
+
+        if (enabled == 1) {
+            String settingValue = Settings.Secure.getString(
+                    getApplicationContext().getContentResolver()
+                    , Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+
+            if (settingValue != null) {
+                String[] values = settingValue.split(":");
+                for (String s : values) {
+                    if (s.equalsIgnoreCase(service))
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

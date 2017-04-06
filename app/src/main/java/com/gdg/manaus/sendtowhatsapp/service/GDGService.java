@@ -14,15 +14,13 @@ import java.util.List;
 
 public class GDGService extends AccessibilityService {
 
-    private final String TAG = "GDG Acessib Serv";
+    private final String TAG = this.getClass().getSimpleName();
 
     private final String waTextFieldID = "com.whatsapp:id/entry";
     private final String waButtonSendID = "com.whatsapp:id/send";
     private final String waBackButtonID = "com.whatsapp:id/back";
 
-    public static boolean isEnabled = false;
     private static String textToSend;
-    public static List<Contact> contacts;
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -48,13 +46,9 @@ public class GDGService extends AccessibilityService {
         if (textNode == null || textToSend == null)
             return;
 
-        // Intents are handled as LIFO Stack, so must pop elements from the end first.
-        String temp = textToSend.replaceAll("@name", contacts.get(contacts.size() - 1).getFirstName());
-        contacts.remove(contacts.size() - 1);
-
         Bundle textBundle = new Bundle();
         textBundle.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE
-                , temp);
+                , textToSend);
 
         textNode.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, textBundle);
 
@@ -90,12 +84,12 @@ public class GDGService extends AccessibilityService {
 
     @Override
     protected void onServiceConnected() {
-        isEnabled = true;
+
     }
 
     @Override
     public void onDestroy() {
-        isEnabled = false;
+
     }
 
     public static void setTextToSend(String text) {
