@@ -1,31 +1,22 @@
 package com.gdg.manaus.sendtowhatsapp;
 
-import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.Settings;
-import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.telephony.PhoneNumberUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -35,11 +26,8 @@ import com.gdg.manaus.sendtowhatsapp.business.ContactHandler;
 import com.gdg.manaus.sendtowhatsapp.model.Contact;
 import com.gdg.manaus.sendtowhatsapp.service.GDGService;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity
         implements ContactHandler.ContactHandlerCallBack
@@ -138,14 +126,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void fileChooser() {
-        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);
-        i.setType("text/csv");
+        i.setType("text/*");
+        // Auto enable internal storage on Picker SAF. It is not a official solution
+        i.putExtra("android.content.extra.SHOW_ADVANCED", true);
         startActivityForResult(Intent.createChooser(i, "Abrir CSV"), READ_REQUEST_CODE);
     }
 
+    @SuppressWarnings("WrongConstant")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // FileChooser return.
         if (requestCode == READ_REQUEST_CODE && resultCode==RESULT_OK) {
             Uri uri = null;
             if (data != null) {
@@ -156,8 +148,13 @@ public class MainActivity extends AppCompatActivity
                         , true);
 
                 uri = data.getData();
-                Thread t = null;
+                grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                int takeFlags = data.getFlags()
+                        & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
 
+                Thread t = null;
                 try {
                     t = new Thread(new ContactHandler(getApplicationContext(), uri, this));
                 } catch (IOException e) {

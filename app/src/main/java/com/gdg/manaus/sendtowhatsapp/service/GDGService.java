@@ -2,14 +2,10 @@ package com.gdg.manaus.sendtowhatsapp.service;
 
 import android.accessibilityservice.AccessibilityService;
 import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-import com.gdg.manaus.sendtowhatsapp.model.Contact;
-
-import java.util.HashMap;
 import java.util.List;
 
 public class GDGService extends AccessibilityService {

@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.gdg.manaus.sendtowhatsapp.model.Contact;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
