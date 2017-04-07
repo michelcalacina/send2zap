@@ -5,23 +5,31 @@ package com.gdg.manaus.sendtowhatsapp.model;
  */
 
 public class Contact {
-    private String firstName;
+    private String name;
     private String number;
+    private boolean checked;
 
-    public String getFirstName() {
-        return firstName;
+    public Contact() {
+        this.checked = true;
+    }
+
+    public String getName() {
+        return name;
     }
 
     /**
      * Extract the first name from the complete nama
      * @param completeName
      */
-    public void setFirstName(String completeName) {
+    public void setName(String completeName) {
         String[] names = completeName.split(" ");
-        if (names.length > 0) {
-            firstName = names[0];
-        } else {
-            firstName = completeName;
+        // Get First and second names.
+        if (names.length > 1) {
+            this.name = names[0] + " " + names[1];
+        } else if (names.length == 1) {
+            this.name = names[0];
+        }else {
+            name = completeName;
         }
     }
 
@@ -48,6 +56,14 @@ public class Contact {
         } else {
             this.number = temp;
         }
+    }
+
+    public boolean isChecked() {
+        return checked;
+    }
+
+    public void setChecked(boolean checked) {
+        this.checked = checked;
     }
 
     /*public void setNumber(String number) {

@@ -18,6 +18,8 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity
     private EditText mMessageField;
     private RelativeLayout mainLayout;
     private Button openFile;
+    private CheckBox checkBoxHeader;
     FloatingActionButton mFab;
 
     private boolean isAccessibilityServiceEnabled = false;
@@ -54,7 +57,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mainLayout = (RelativeLayout) findViewById(R.id.main_constraint_layout);
+        mainLayout = (RelativeLayout) findViewById(R.id.main_content_layout);
 
         openFile = (Button) findViewById(R.id.action_open_file);
         openFile.setOnClickListener(this);
@@ -76,6 +79,15 @@ public class MainActivity extends AppCompatActivity
         mContactsRecyclerView = (RecyclerView) findViewById(R.id.contact_list);
         mContactsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mContactsRecyclerView.setAdapter(mContactAdapter);
+
+        checkBoxHeader = (CheckBox) findViewById(R.id.contact_list_header_checkbox);
+        checkBoxHeader.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mContactAdapter.alterCheckStatus(isChecked);
+            }
+        });
+        checkBoxHeader.setChecked(true);
     }
 
     @Override
@@ -116,12 +128,15 @@ public class MainActivity extends AppCompatActivity
         GDGService.setTextToSend(messageToSend);
 
         for (Contact c : mContactAdapter.getContacts()) {
-            Intent sendIntent = new Intent("android.intent.action.MAIN");
-            sendIntent.setAction(Intent.ACTION_SENDTO);
-            sendIntent.setComponent(new  ComponentName("com.whatsapp","com.whatsapp.Conversation"));
-            sendIntent.putExtra("jid", PhoneNumberUtils.stripSeparators(c.getNumber())+"@s.whatsapp.net");
+            // Send only for selected contacts.
+            if (c.isChecked()) {
+                Intent sendIntent = new Intent("android.intent.action.MAIN");
+                sendIntent.setAction(Intent.ACTION_SENDTO);
+                sendIntent.setComponent(new  ComponentName("com.whatsapp","com.whatsapp.Conversation"));
+                sendIntent.putExtra("jid", PhoneNumberUtils.stripSeparators(c.getNumber())+"@s.whatsapp.net");
 
-            startActivity(sendIntent);
+                startActivity(sendIntent);
+            }
         }
     }
 

@@ -7,19 +7,19 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main"
-    android:id="@+id/main_constraint_layout"
+    android:id="@+id/main_content_layout"
     tools:context="com.gdg.manaus.sendtowhatsapp.MainActivity">
+
+    <include layout="@layout/contact_list_header"
+        android:id="@+id/header_list_contact"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/contact_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:scrollbars="vertical"
+        android:layout_below="@+id/header_list_contact"
         android:layout_above="@+id/message_field"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:paddingLeft="25dp"
-        android:paddingRight="25dp"
         android:background="#EEEEEE"/>
 
     <EditText
@@ -27,7 +27,6 @@
         android:layout_width="match_parent"
         android:layout_height="180dp"
         android:hint="@string/hint_edit_message"
-        app:layout_constraintBottom_toBottomOf="parent"
         android:layout_alignParentBottom="true"
         android:backgroundTint="#FFE082"
         android:background="#FFF8E1"/>

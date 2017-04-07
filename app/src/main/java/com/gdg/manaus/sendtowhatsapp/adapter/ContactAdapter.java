@@ -5,6 +5,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.gdg.manaus.sendtowhatsapp.R;
@@ -34,6 +36,12 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.Holder> 
     public List<Contact> getContacts() {
         return contacts;
     }
+    public void alterCheckStatus(boolean status) {
+        for (Contact c : contacts) {
+            c.setChecked(status);
+        }
+        notifyDataSetChanged();
+    }
 
     @Override
     public Holder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -42,11 +50,18 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.Holder> 
     }
 
     @Override
-    public void onBindViewHolder(Holder holder, int position) {
+    public void onBindViewHolder(Holder holder, final int position) {
         Contact c = contacts.get(position);
         if (c != null) {
-            holder.contactName.setText(c.getFirstName());
+            holder.contactName.setText(c.getName());
             holder.contactPhone.setText(c.getNumber());
+            holder.checkStatus.setChecked(contacts.get(position).isChecked());
+            holder.checkStatus.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    contacts.get(position).setChecked(isChecked);
+                }
+            });
         }
     }
 
@@ -58,12 +73,18 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.Holder> 
     class Holder extends RecyclerView.ViewHolder {
         TextView contactName;
         TextView contactPhone;
+        CheckBox checkStatus;
 
-        public Holder(View itemView) {
+        public Holder(final View itemView) {
             super(itemView);
+
+            // Fix to not loose status on checked/unchecked elements.
+            this.setIsRecyclable(false);
 
             contactName = (TextView) itemView.findViewById(R.id.contact_name);
             contactPhone = (TextView) itemView.findViewById(R.id.contact_phone);
+            checkStatus = (CheckBox) itemView.findViewById(R.id.contact_list_item_checkbox);
+
         }
     }
 }

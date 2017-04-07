@@ -55,7 +55,7 @@ public class ReadCSV implements ReadContactSource {
         Contact contact = new Contact();
         String[] columns = line.split(",");
 
-        contact.setFirstName(columns[1]);
+        contact.setName(columns[1]);
         contact.setNumber(columns[3]);
 
         return contact;
