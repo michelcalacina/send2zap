@@ -28,7 +28,7 @@
         android:layout_height="180dp"
         android:hint="@string/hint_edit_message"
         android:layout_alignParentBottom="true"
-        android:backgroundTint="#FFE082"
-        android:background="#FFF8E1"/>
+        android:backgroundTint="#FAFAFA"
+        android:background="#FAFAFA"/>
 
 </RelativeLayout>

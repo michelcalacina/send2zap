@@ -13,4 +13,5 @@
     <string name="snack_file_not_found_exception">Arquivo não encontrado!</string>
     <string name="contact_list_header_name">NOME</string>
     <string name="contact_list_header_phone">NÚMERO</string>
+    <string name="warning_disable_accessibility">Desabilite o serviço de acessibilidade do GDG.</string>
 </resources>

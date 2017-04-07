@@ -78,16 +78,6 @@ public class GDGService extends AccessibilityService {
 
     }
 
-    @Override
-    protected void onServiceConnected() {
-
-    }
-
-    @Override
-    public void onDestroy() {
-
-    }
-
     public static void setTextToSend(String text) {
         textToSend = text;
     }

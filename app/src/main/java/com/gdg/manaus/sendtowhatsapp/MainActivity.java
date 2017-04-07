@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity
     FloatingActionButton mFab;
 
     private boolean isAccessibilityServiceEnabled = false;
+    private boolean isPressedBackBeforeConfig = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,19 +95,16 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         isAccessibilityServiceEnabled = isAccessibilityEnabled();
-        if (!isAccessibilityServiceEnabled) {
-            Snackbar snackbar = Snackbar.make(mainLayout
-                    , getString(R.string.warning_enable_accessibility)
-                    , Snackbar.LENGTH_INDEFINITE)
-                    .setAction(getString(R.string.snack_enable_service), new View.OnClickListener() {
 
-                        @Override
-                        public void onClick(View v) {
-                            Intent i = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                            startActivity(i);
-                        }
-                    });
-            snackbar.show();
+        // User has pressed back to finish activity, but was interrupted by the configuration warning.
+        if (isPressedBackBeforeConfig)
+            finish();
+
+        if (!isAccessibilityServiceEnabled) {
+            showSnackbarActionMessage(getString(R.string.warning_enable_accessibility)
+                    , Snackbar.LENGTH_INDEFINITE
+                    , getString(R.string.snack_enable_service)
+                    , Settings.ACTION_ACCESSIBILITY_SETTINGS);
         } else {
             controlFab(true);
         }
@@ -114,10 +112,7 @@ public class MainActivity extends AppCompatActivity
 
     private void sendMessage() {
         if (mContactAdapter.getContacts() == null || mContactAdapter.getContacts().size() == 0) {
-            Snackbar.make(mainLayout
-                    , getString(R.string.contact_empty_list)
-                    , Snackbar.LENGTH_LONG).show();
-            return;
+            showSnackbarMessage(getString(R.string.contact_empty_list), Snackbar.LENGTH_LONG);
         }
 
         String messageToSend = mMessageField.getText().toString();
@@ -197,9 +192,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onExtractContactError() {
         progressDialog.dismiss();
-        Snackbar.make(mainLayout
-                , getString(R.string.snack_file_not_found_exception)
-                , Snackbar.LENGTH_SHORT).show();
+        showSnackbarMessage(getString(R.string.snack_file_not_found_exception)
+                , Snackbar.LENGTH_SHORT);
     }
 
     @Override
@@ -248,7 +242,8 @@ public class MainActivity extends AppCompatActivity
         final String service = getPackageName() +"/"+GDGService.class.getCanonicalName();
 
         try {
-            enabled = Settings.Secure.getInt(getApplicationContext().getContentResolver(), Settings.Secure.ACCESSIBILITY_ENABLED);
+            enabled = Settings.Secure.getInt(getApplicationContext().getContentResolver()
+                    , Settings.Secure.ACCESSIBILITY_ENABLED);
         } catch (Settings.SettingNotFoundException e) {
             Log.e(TAG, e.getMessage());
         }
@@ -268,5 +263,41 @@ public class MainActivity extends AppCompatActivity
         }
 
         return false;
+    }
+
+    private void showSnackbarMessage(String message, int snackbarDuration) {
+        Snackbar.make(mainLayout
+                , message
+                , snackbarDuration).show();
+        return;
+    }
+
+    private void showSnackbarActionMessage(String message, int snackbarDuration
+            , String labelAction, final String intentAction) {
+        Snackbar snackbar = Snackbar.make(mainLayout
+                , message
+                , snackbarDuration)
+                .setAction(labelAction, new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        Intent i = new Intent(intentAction);
+                        startActivity(i);
+                    }
+                });
+        snackbar.show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isAccessibilityEnabled()) {
+            isPressedBackBeforeConfig = true;
+            showSnackbarActionMessage(getString(R.string.warning_disable_accessibility)
+                    , Snackbar.LENGTH_INDEFINITE
+                    , getString(R.string.snack_enable_service)
+                    , Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        } else {
+            super.onBackPressed();
+        }
     }
 }

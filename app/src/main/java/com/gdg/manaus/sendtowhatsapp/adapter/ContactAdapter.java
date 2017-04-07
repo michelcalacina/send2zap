@@ -50,7 +50,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.Holder> 
     }
 
     @Override
-    public void onBindViewHolder(Holder holder, final int position) {
+    public void onBindViewHolder(final Holder holder, int position) {
         Contact c = contacts.get(position);
         if (c != null) {
             holder.contactName.setText(c.getName());
@@ -59,7 +59,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.Holder> 
             holder.checkStatus.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    contacts.get(position).setChecked(isChecked);
+                    contacts.get(holder.getAdapterPosition()).setChecked(isChecked);
                 }
             });
         }
@@ -84,7 +84,6 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.Holder> 
             contactName = (TextView) itemView.findViewById(R.id.contact_name);
             contactPhone = (TextView) itemView.findViewById(R.id.contact_phone);
             checkStatus = (CheckBox) itemView.findViewById(R.id.contact_list_item_checkbox);
-
         }
     }
 }
